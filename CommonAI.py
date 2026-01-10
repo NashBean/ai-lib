@@ -19,13 +19,17 @@ from email.mime.text import MIMEText
 # Version
 MAJOR_VERSION = 0
 MINOR_VERSION = 1
-FIX_VERSION = 1
+FIX_VERSION = 2
 VERSION_STRING = f"v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}"
 
 DATA_DIR = "data"
 DATA_PATH = "data/data.json"
 
 logger = logging.getLogger("CommonAI")
+
+# Version helper
+def get_version(major, minor, fix):
+    return f"v{major}.{minor}.{fix}"
 
 def setup_logging(log_file="ai.log"):
     logging.basicConfig(
@@ -73,6 +77,15 @@ def update_data(new_data):
     except Exception as e:
         logger.error(f"Data update error: {e}")
 
-# Version helper
-def get_version(major, minor, fix):
-    return f"v{major}.{minor}.{fix}"
+def get_response(ai_data, query):
+    q = query.lower()
+    if "parable" in q:
+        parable = q.split("parable of")[1].strip() if "of" in q else "sower"
+        p = ai_data["PARABLES"].get(parable, {})
+        return f"Parable of {parable.capitalize()}\nReferences: {p.get('references', '')}\nVerses: {p.get('verses', '')}"
+    # Add OT fulfillment for JesusAI
+    if "fulfill" in q or "prophecy" in q:
+        return ai_data.get("OT_FULFILLMENT", "No info")
+    # Shared keyword logic
+    return ai_data["RESPONSES"].get(q, ai_data["RESPONSES"]["default"])
+
