@@ -1,0 +1,306 @@
+{
+  "project_name": "TrinityAI Ecosystem",
+  "description": "Modular AI system with individual AIs (Abraham, Moses, Jesus) and unified TrinityAI. Shared logic in ai-lib, unique data per AI. Servers run on separate ports, Trinity queries them. All repos use consistent naming: main.py (console), NameAI_Server.py (server), NameAI_OS.py (desktop GUI), app.py (future mobile), NameAI_Console.cpp (C++ console), edit_data.cpp (C++ data editor). Version control: MAJOR_VERSION, MINOR_VERSION, FIX_VERSION in files, printed as vX.Y.Z.",
+  "last_updated": "January 10, 2026",
+  "repositories": {
+    "ai-lib": {
+      "url": "https://github.com/NashBean/ai-lib.git",
+      "description": "Shared library for all AIs: CommonAI.py (monitoring, research, utils), tracker.py (DB tracking), monitoring.py (system limits), ai_tracker.db (SQLite DB for file tracking).",
+      "directories": [],
+      "files": {
+        "CommonAI.py": {
+          "version": "0.1.0 (from MAJOR_VERSION=0, MINOR_VERSION=1, FIX_VERSION=0)",
+          "description": "Core shared functions: logging, config load/save, system monitoring (RAM/CPU/disk/net), research (Wikipedia/GitHub API), alerting (email), data utils.",
+          "key_functions": [
+            "setup_logging()",
+            "load_config()",
+            "check_system_limits()",
+            "self_research(topic)",
+            "self_update()",
+            "send_alert(message)",
+            "load_data()",
+            "update_data(new_data)",
+            "get_response(ai_data, query)",
+            "understand_language(language, text)",
+            "get_culture(ai_data, query)"
+          ],
+          "key_variables": [
+            "MAJOR_VERSION = 0",
+            "MINOR_VERSION = 1",
+            "FIX_VERSION = 0",
+            "VERSION_STRING = f'v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}'",
+            "DATA_DIR = './data'",
+            "DATA_PATH = os.path.join(DATA_DIR, 'data.json')",
+            "logger = logging.getLogger(__name__)"
+          ],
+          "connections": "Imported by all AIs for shared monitoring/research/logging."
+        },
+        "tracker.py": {
+          "version": "0.1.0",
+          "description": "SQLite DB for tracking files/features/updates/connections across AIs.",
+          "key_functions": [
+            "init_db()",
+            "add_or_update_ai(name, url, major, minor, fix, features)",
+            "get_ai_status(name)"
+          ],
+          "key_variables": [
+            "DB_FILE = 'ai_tracker.db'"
+          ],
+          "connections": "Used in servers/main.py to log updates (e.g., on startup or version change)."
+        },
+        "monitoring.py": {
+          "version": "0.1.0",
+          "description": "System monitoring and alerting functions.",
+          "key_functions": [
+            "check_system_limits(config)",
+            "send_alert(config, message)"
+          ],
+          "key_variables": [],
+          "connections": "Imported by CommonAI.py for integration."
+        },
+        "ai_tracker.db": {
+          "version": "N/A (binary SQLite file)",
+          "description": "Database storing AI/file tracking data (ai_name, file_name, description, version, last_update, connections).",
+          "key_functions": "N/A",
+          "key_variables": "N/A",
+          "connections": "Populated by tracker.py; queried by servers for status."
+        }
+      },
+      "links": "Central shared repo; all other AIs import CommonAI.py, tracker.py, etc."
+    },
+    "AbrahamAI": {
+      "url": "https://github.com/NashBean/AbrahamAI.git",
+      "description": "AbrahamAI: Focus on culture, journey, archaeology (Ur, Beer-sheba well), faith/covenant.",
+      "directories": [
+        "data"
+      ],
+      "files": {
+        "AbrahamAI_Server.py": {
+          "version": "v0.2.4",
+          "description": "Server for AbrahamAI queries, imports from ai-lib.",
+          "key_functions": [
+            "speak(text)",
+            "get_response(query)",
+            "research_topic(topic)",
+            "update_knowledge(key, value)",
+            "check_system_limits()",
+            "handle_client(client_socket, addr)",
+            "main()"
+          ],
+          "key_variables": [
+            "MAJOR_VERSION = 0",
+            "MINOR_VERSION = 2",
+            "FIX_VERSION = 4",
+            "AI_NAME = 'AbrahamAI'",
+            "PORT = 5001",
+            "DATA_DIR = 'data'",
+            "KNOWLEDGE_FILE = 'data/abraham_data.json'"
+          ],
+          "connections": "Imports CommonAI.py from ai-lib for shared functions; queries other AIs via Trinity."
+        },
+        "main.py": {
+          "version": "v0.2.4",
+          "description": "Console interactive chat for AbrahamAI.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Uses data/abraham_data.json; can call server if networked."
+        },
+        "AbrahamAI_Console.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ console that queries AbrahamAI server.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Links to server on port 5001."
+        },
+        "edit_data.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ JSON editor for data/abraham_data.json.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Edits data/abraham_data.json."
+        }
+      },
+      "links": "Queries TrintityAI for unified mode; data unique to Abraham (culture, journey, archaeology)."
+    },
+    "MosesAI": {
+      "url": "https://github.com/NashBean/MosesAI.git",
+      "description": "MosesAI: Focus on law, Exodus route, tabernacle, plagues.",
+      "directories": [
+        "data"
+      ],
+      "files": {
+        "MosesAI_Server.py": {
+          "version": "v0.2.4",
+          "description": "Server for MosesAI queries.",
+          "key_functions": [
+            "speak(text)",
+            "get_response(query)",
+            "research_topic(topic)",
+            "update_knowledge(key, value)",
+            "check_system_limits()",
+            "handle_client(client_socket, addr)",
+            "main()"
+          ],
+          "key_variables": [
+            "MAJOR_VERSION = 0",
+            "MINOR_VERSION = 2",
+            "FIX_VERSION = 4",
+            "AI_NAME = 'MosesAI'",
+            "PORT = 5002",
+            "DATA_DIR = 'data'",
+            "KNOWLEDGE_FILE = 'data/moses_data.json'"
+          ],
+          "connections": "Imports from ai-lib; queried by TrintityAI."
+        },
+        "main.py": {
+          "version": "v0.2.4",
+          "description": "Console chat for MosesAI.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Uses data/moses_data.json."
+        },
+        "MosesAI_Console.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ console querying MosesAI server.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Links to server on port 5002."
+        },
+        "edit_data.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ JSON editor for data/moses_data.json.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Edits data/moses_data.json."
+        }
+      },
+      "links": "Data unique to Moses (law, Exodus, tabernacle)."
+    },
+    "JesusAI": {
+      "url": "https://github.com/NashBean/JesusAI.git",
+      "description": "JesusAI: Focus on parables, Gospels Greek, OT fulfillment, archaeology.",
+      "directories": [
+        "data"
+      ],
+      "files": {
+        "JesusAI_Server.py": {
+          "version": "v0.2.4",
+          "description": "Server for JesusAI queries.",
+          "key_functions": [
+            "speak(text)",
+            "get_response(query)",
+            "research_topic(topic)",
+            "update_knowledge(key, value)",
+            "check_system_limits()",
+            "handle_client(client_socket, addr)",
+            "main()"
+          ],
+          "key_variables": [
+            "MAJOR_VERSION = 0",
+            "MINOR_VERSION = 2",
+            "FIX_VERSION = 4",
+            "AI_NAME = 'JesusAI'",
+            "PORT = 5003",
+            "DATA_DIR = 'data'",
+            "KNOWLEDGE_FILE = 'data/jesus_data.json'"
+          ],
+          "connections": "Imports from ai-lib; queried by TrintityAI."
+        },
+        "main.py": {
+          "version": "v0.2.4",
+          "description": "Console chat for JesusAI.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Uses data/jesus_data.json."
+        },
+        "JesusAI_Console.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ console querying JesusAI server.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Links to server on port 5003."
+        },
+        "edit_data.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ JSON editor for data/jesus_data.json.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Edits data/jesus_data.json."
+        }
+      },
+      "links": "Data unique to Jesus (parables, Greek Gospels, OT fulfillment)."
+    },
+    "TrintityAI": {
+      "url": "https://github.com/NashBean/TrintityAI.git",
+      "description": "Unified TrinityAI: Server queries individual AIs, GUI, console.",
+      "directories": [
+        "data"
+      ],
+      "files": {
+        "TrintityAI_Server.py": {
+          "version": "v0.2.4",
+          "description": "Server for TrintityAI queries, combines individual AIs.",
+          "key_functions": [
+            "speak(text)",
+            "get_response(query)",
+            "research_topic(topic)",
+            "update_knowledge(key, value)",
+            "check_system_limits()",
+            "handle_client(client_socket, addr)",
+            "main()"
+          ],
+          "key_variables": [
+            "MAJOR_VERSION = 0",
+            "MINOR_VERSION = 2",
+            "FIX_VERSION = 4",
+            "AI_NAME = 'TrintityAI'",
+            "PORT = 12345",
+            "DATA_DIR = 'data'",
+            "KNOWLEDGE_FILE = 'data/trintity_data.json'"
+          ],
+          "connections": "Queries AbrahamAI (5001), MosesAI (5002), JesusAI (5003); imports from ai-lib."
+        },
+        "TrintityAI_LinuxGUI.py": {
+          "version": "v0.2.4",
+          "description": "Linux desktop GUI for TrintityAI.",
+          "key_functions": [
+            "toggle_voice()",
+            "select(mode)",
+            "add_system(text)",
+            "add_message(sender, text)",
+            "send(event=None)"
+          ],
+          "key_variables": [
+            "MAJOR_VERSION = 0",
+            "MINOR_VERSION = 2",
+            "FIX_VERSION = 4"
+          ],
+          "connections": "Connects to TrintityAI_Server.py on 12345."
+        },
+        "main.py": {
+          "version": "v0.2.4",
+          "description": "Console chat for TrintityAI.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Uses data/trintity_data.json."
+        },
+        "TrintityAI_Console.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ console querying TrintityAI server.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Links to server on port 12345."
+        },
+        "edit_data.cpp": {
+          "version": "v0.2.4",
+          "description": "C++ JSON editor for data/trintity_data.json.",
+          "key_functions": ["main()"],
+          "key_variables": [],
+          "connections": "Edits data/trintity_data.json."
+        }
+      },
+      "links": "Central hub; queries individual AIs; imports from ai-lib."
+    }
+  },
+  "overall_project_notes": "Shared logic in ai-lib/CommonAI.py (monitoring, research, utils). Unique data in each AI's ./data/ (culture, archaeology, parables, OT fulfillment). Servers on ports 5001-5003 (individual), 12345 (Trintity). C++ consoles query servers. Version control: MAJOR_VERSION, MINOR_VERSION, FIX_VERSION in files."
+}
