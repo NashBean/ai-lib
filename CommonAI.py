@@ -19,7 +19,7 @@ from email.mime.text import MIMEText
 # Version
 MAJOR_VERSION = 0
 MINOR_VERSION = 1
-FIX_VERSION = 2
+FIX_VERSION = 3
 VERSION_STRING = f"v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}"
 
 DATA_DIR = "data"
@@ -89,3 +89,11 @@ def get_response(ai_data, query):
     # Shared keyword logic
     return ai_data["RESPONSES"].get(q, ai_data["RESPONSES"]["default"])
 
+def understand_language(language, text):
+    # Simple placeholder - expand with NLTK or web research
+    if language == "hebrew":
+        return f"Hebrew text: {text} - Meaning: [research]"
+    return text
+
+def get_culture(ai_data, query):
+    return ai_data["CULTURE"].get(query, "No info")
