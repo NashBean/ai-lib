@@ -5,6 +5,11 @@ import sqlite3
 import datetime
 import logging
 
+# Version
+MAJOR_VERSION = 0
+MINOR_VERSION = 1
+FIX_VERSION = 0
+
 logger = logging.getLogger("ai-lib")
 
 DB_FILE = "ai_tracker.db"
