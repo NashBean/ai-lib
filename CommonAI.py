@@ -5,10 +5,10 @@
 #Logging/alerting (email on limits).
 #Data load/save utils (for ./data/json).
 
-import psutil
 import logging
 import json
 import os
+import psutil
 import requests
 import time
 import subprocess
@@ -19,35 +19,92 @@ from email.mime.text import MIMEText
 # Version
 MAJOR_VERSION = 0
 MINOR_VERSION = 1
-FIX_VERSION = 3
+FIX_VERSION = 4
 VERSION_STRING = f"v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}"
 
 DATA_DIR = "data"
 DATA_PATH = "data/data.json"
 
-logger = logging.getLogger("CommonAI")
+logger = logging.getLogger("ai-lib")
 
 # Version helper
 def get_version(major, minor, fix):
     return f"v{major}.{minor}.{fix}"
 
 def setup_logging(log_file="ai.log"):
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[logging.FileHandler(log_file), logging.StreamHandler()]
-    )
+    handlers = []
+    if os.path.exists(log_file):
+        handlers.append(logging.FileHandler(log_file))
+    handlers.append(logging.StreamHandler())
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", handlers=handlers)
 
 def load_config(config_file="config.json"):
-    # Your load code from earlier
+    try:
+        if os.path.exists(config_file):
+            with open(config_file, "r") as f:
+                return json.load(f)
+    except Exception as e:
+        logger.error(f"Config load error: {e}")
+    default = {
+        "RESEARCH_ENABLED": False,
+        "DATA_MAX_SIZE_MB": 100,
+        "RAM_LIMIT_GB": 4,
+        "CPU_LIMIT_PERCENT": 80,
+        "DISK_MIN_FREE_GB": 5,
+        "NET_BANDWIDTH_THRESHOLD_MBPS": 1.0,
+        "NET_LATENCY_MAX_MS": 200
+    }
+#        "ALERT_EMAIL": "your_email@example.com",
+#       "SMTP_SERVER": "smtp.example.com",
+#        "SMTP_PORT": 587,
+#        "SMTP_USER": "user",
+#        "SMTP_PASS": "pass",
+#        "RESEARCH_SCHEDULE": "daily",
+#        "GITHUB_REPO": "NashBean/AbrahamAI",
+#        "GITHUB_TOKEN": "your_github_pat_here"
+
+    return default
 
 # System monitoring
 def check_system_limits(config):
-    # Your full RAM/CPU/disk/net code from earlier
-    return True  # or False
+    try:
+        if psutil.virtual_memory().used / (1024 ** 3) > config["RAM_LIMIT_GB"]:
+            logger.warning("RAM limit exceeded")
+            return False
+        if psutil.cpu_percent(interval=1) > config["CPU_LIMIT_PERCENT"]:
+            logger.warning("CPU limit exceeded")
+            return False
+        disk = psutil.disk_usage('/')
+        if disk.free / (1024 ** 3) < config["DISK_MIN_FREE_GB"]:
+            logger.warning("Disk space low")
+            return False
+        net_start = psutil.net_io_counters()
+        time.sleep(1)
+        net_end = psutil.net_io_counters()
+        bandwidth_mbps = ((net_end.bytes_sent + net_end.bytes_recv - net_start.bytes_sent - net_start.bytes_recv) / 1024 / 1024) * 8
+        if bandwidth_mbps < config["NET_BANDWIDTH_THRESHOLD_MBPS"]:
+            logger.warning("Bandwidth low")
+            return False
+        return True
+    except Exception as e:
+        logger.error(f"System check error: {e}")
+        return False
 
 def self_research(topic):
-    # Your Wikipedia research code
+    if not CONFIG["RESEARCH_ENABLED"]:
+        return "Research disabled."
+    try:
+        url = f"https://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles={topic.replace(' ', '_')}"
+        resp = requests.get(url, timeout=10)
+        data = resp.json()
+        pages = data["query"]["pages"]
+        page_id = list(pages.keys())[0]
+        if page_id != "-1":
+            return pages[page_id]["extract"]
+        return "No info."
+    except Exception as e:
+        logger.error(f"Research error: {e}")
+        return "Research failed."
 
 def self_update(config):
     # Your GitHub pull/restart code
