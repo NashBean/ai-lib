@@ -3,7 +3,7 @@
 #Research/self-learn (Wikipedia/GitHub API functions).
 #Version control (your MAJOR/MINOR/FIX variables as functions).
 #Logging/alerting (email on limits).
-#Data load/save utils (for ./data/json).
+#Data load/save utils (for ./AIName_data/json).
 
 import logging
 import json
@@ -19,7 +19,7 @@ from email.mime.text import MIMEText
 # Version
 MAJOR_VERSION = 0
 MINOR_VERSION = 1
-FIX_VERSION = 4
+FIX_VERSION = 5
 VERSION_STRING = f"v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}"
 
 DATA_DIR = "data"
@@ -106,11 +106,40 @@ def self_research(topic):
         logger.error(f"Research error: {e}")
         return "Research failed."
 
+# GitHub self-update
 def self_update(config):
-    # Your GitHub pull/restart code
+    try:
+        owner, repo = config["GITHUB_REPO"].split("/")
+        url = f"https://api.github.com/repos/{owner}/{repo}/commits/main"
+        headers = {"Authorization": f"Bearer {config['GITHUB_TOKEN']}"}
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        head_sha = resp.json()["sha"]
+        base_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
+        if base_sha != head_sha:
+            subprocess.run(["git", "pull"], check=True)
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+            return "Updated and restarted"
+        return "Up to date"
+    except Exception as e:
+        logger.error(f"Update failed: {e}")
+        return "Update failed"
 
+# Send alert (email)
 def send_alert(config, message):
-    # Your email code
+    try:
+        msg = MIMEText(message)
+        msg["Subject"] = "TrinityAI Alert"
+        msg["From"] = config["SMTP_USER"]
+        msg["To"] = config["ALERT_EMAIL"]
+        server = smtplib.SMTP(config["SMTP_SERVER"], config["SMTP_PORT"])
+        server.starttls()
+        server.login(config["SMTP_USER"], config["SMTP_PASS"])
+        server.sendmail(config["SMTP_USER"], config["ALERT_EMAIL"], msg.as_string())
+        server.quit()
+        logger.info("Alert sent")
+    except Exception as e:
+        logger.error(f"Alert failed: {e}")
 
 # Data utils
 
@@ -154,3 +183,8 @@ def understand_language(language, text):
 
 def get_culture(ai_data, query):
     return ai_data["CULTURE"].get(query, "No info")
+
+    # Speak
+def speak(text):
+    clean = text.replace('\n', ' ').replace('"', '\\"').replace("'", "\\'")
+    os.system(f'espeak "{clean}" 2>/dev/null &')
