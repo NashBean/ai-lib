@@ -1,7 +1,7 @@
 {
 "project_name": "TrinityAI Ecosystem",
-"description": "Modular AI system with individual AIs (Abraham, Moses, Jesus) and unified TrintityAI. Shared logic in ai-lib, unique data per AI (culture, archaeology, parables, OT fulfillment, ancient scrolls). Servers on separate ports (5001-5003 for individual, 12345 for TrintityAI). All repos use consistent naming: main.py (console), NameAI_Server.py (server), NameAI_OS.py (desktop GUI), app.py (future mobile), NameAI_Console.cpp (C++ console), edit_data.cpp (C++ data editor). Version control: MAJOR_VERSION, MINOR_VERSION, FIX_VERSION in files, printed as vX.Y.Z. Data in ./data/ (JSON files with KJV verses, Greek originals, historical context).",
-"last_updated": "January 10, 2026",
+"description": "Modular AI system with individual AIs (AbrahamAI, MosesAI, JesusAI) and unified TrintityAI. Shared logic in ai-lib (CommonAI.py for monitoring/research/utils, tracker.py for DB, monitoring.py for limits, ai_tracker.db for tracking). Unique data per AI in ./data/ (culture, archaeology, parables, OT fulfillment, ancient scrolls, language, customs). Servers on separate ports (5001-5003 for individual, 12345 for TrintityAI). C++ consoles query servers. Version control: MAJOR_VERSION, MINOR_VERSION, FIX_VERSION in files, printed as vX.Y.Z. All repos use consistent naming: main.py (console), NameAI_Server.py (server), NameAI_OS.py (desktop GUI), app.py (future mobile), NameAI_Console.cpp (C++ console), edit_data.cpp (C++ data editor).",
+"last_updated": "January 11, 2026",
 "repositories": {
 "ai-lib": {
 "url": "https://github.com/NashBean/ai-lib.git",
@@ -33,7 +33,7 @@
 "DATA_PATH = os.path.join(DATA_DIR, 'data.json')",
 "logger = logging.getLogger(name)"
 ],
-"connections": "Imported by all AIs for shared monitoring, research, logging, alerting, data handling."
+"connections": "Imported by all AIs for shared monitoring/research/logging/alerting/data handling."
 },
 "tracker.py": {
 "version": "v0.1.0",
@@ -96,7 +96,7 @@
 "DATA_DIR = 'data'",
 "KNOWLEDGE_FILE = 'data/abraham_data.json'"
 ],
-"connections": "Imports CommonAI.py from ai-lib for shared functions; queries other AIs via TrintityAI."
+"connections": "Imports CommonAI.py from ai-lib for shared functions; queries TrintityAI."
 },
 "main.py": {
 "version": "v0.2.4",
@@ -304,4 +304,3 @@
 },
 "overall_project_notes": "Shared logic in ai-lib/CommonAI.py (monitoring, research, utils). Unique data in each AI's ./data/ (culture, archaeology, parables, OT fulfillment). Servers on ports 5001-5003 (individual), 12345 (TrintityAI). C++ consoles query servers. Version control: MAJOR_VERSION, MINOR_VERSION, FIX_VERSION in files."
 }
-

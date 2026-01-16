@@ -18,10 +18,11 @@ from email.mime.text import MIMEText
 
 # Version
 MAJOR_VERSION = 0
-MINOR_VERSION = 1
-FIX_VERSION = 5
+MINOR_VERSION = 2
+FIX_VERSION = 0
 VERSION_STRING = f"v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}"
 
+CONFIG_FILE = "config.json"
 DATA_DIR = "data"
 DATA_PATH = "data/data.json"
 
@@ -37,6 +38,16 @@ def setup_logging(log_file="ai.log"):
         handlers.append(logging.FileHandler(log_file))
     handlers.append(logging.StreamHandler())
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", handlers=handlers)
+
+def load_config():
+    try:
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, "r") as f:
+                return json.load(f)
+    except Exception as e:
+        logger.error(f"Config load failed: {e} — using defaults.")
+    # Default config...
+    return default_config  # Your defaults here
 
 def load_config(config_file="config.json"):
     try:
@@ -64,6 +75,35 @@ def load_config(config_file="config.json"):
 #        "GITHUB_TOKEN": "your_github_pat_here"
 
     return default
+
+def save_config(config=None):
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config or CONFIG, f, indent=4)
+    except Exception as e:
+        logger.error(f"Config save failed: {e}")
+
+def update_data(new_data, file=DATA_FILE):
+    try:
+        data = load_data(file)
+        data.update(new_data)
+        with open(file, "w") as f:
+            json.dump(data, f, indent=4)
+    except Exception as e:
+        logger.error(f"Data update failed: {e}")
+
+def load_knowledge(knowledge_file = "knowledge.json"):
+    try:
+        if os.path.exists(knowledge_file):
+            size_mb = os.path.getsize(knowledge_file) / (1024 * 1024)
+            if size_mb > CONFIG["DATA_MAX_SIZE_MB"]:
+                logger.warning("Data size exceeded — skipping load.")
+                return {}
+            with open(knowledge_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception as e:
+        logger.error(f"Knowledge load failed: {e} — using empty dict.")
+        return {}
 
 # System monitoring
 def check_system_limits(config):
@@ -153,15 +193,6 @@ def load_data(filename):
     except Exception as e:
         logger.error(f"Data load error: {e}")
     return {}
-
-def update_data(new_data):
-    data = load_data()
-    data.update(new_data)
-    try:
-        with open(DATA_PATH, "w") as f:
-            json.dump(data, f, indent=4)
-    except Exception as e:
-        logger.error(f"Data update error: {e}")
 
 def get_response(ai_data, query):
     q = query.lower()
