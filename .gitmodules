@@ -1,3 +1,6 @@
 [submodule "bdh"]
 	path = bdh
 	url = https://github.com/pathwaycom/bdh.git
+[submodule "pathway"]
+	path = pathway
+	url = https://github.com/pathwaycom/pathway.git
