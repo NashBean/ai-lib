@@ -1,2 +1,4 @@
 requests
 psutil
+pathway
+torch  # For BDH

@@ -19,7 +19,7 @@ from email.mime.text import MIMEText
 # Version
 MAJOR_VERSION = 0
 MINOR_VERSION = 3
-FIX_VERSION = 0
+FIX_VERSION = 1
 VERSION_STRING = f"v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}"
 
 CONFIG_FILE = "config.json"
@@ -29,8 +29,6 @@ DATA_PATH = "data/data.json"
 logger = logging.getLogger("ai-lib")
 
 # BDH Integration (Baby Dragon Hatchling for core learning/response)
-import sys
-import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bdh')))
 
 from bdh.train import BDHModel  # Adapt from BDH code (train.py)
