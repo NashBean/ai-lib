@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <time.h>
 
-// v0.8.0
+// v0.9.0
 
 // Max path length
 #define MAX_PATH 4096
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    const char *root_dir = "/code";
+    const char *root_dir = "/home/nash/code";
     FILE *report_fp = fopen(REPORT_FILE, "w");
     if (report_fp == NULL) {
         printf("Error: Could not open report file %s (errno: %d)\n", REPORT_FILE, errno);
