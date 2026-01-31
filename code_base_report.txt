@@ -1,0 +1,6 @@
+Code Base Report for Biblical Figure Knowledge AIs + Supports
+Generated: Sat Jan 31 17:48:02 2026
+
+Root: /code
+
+Error: Could not open root /code (errno: 2)

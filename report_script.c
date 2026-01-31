@@ -7,16 +7,18 @@
 #include <errno.h>
 #include <time.h>
 
-// v0.7.0
+// v0.8.0
 
-// Max path length (standard for most systems)
+// Max path length
 #define MAX_PATH 4096
 // Report file name
 #define REPORT_FILE "code_base_report.txt"
+// Patch file for edits
+#define PATCH_FILE "auto_patch.txt"
 
 // Focused projects (Biblical AIs + supports)
 // Biblical AI projects to focus on (add more if needed)
-const char *biblical_projects[] = {
+const char *focus_projects[] = {
    "AbrahamAI",
     "MosesAI",
     "JesusAI",
@@ -34,7 +36,7 @@ const char *biblical_projects[] = {
     NULL  // End marker
 };
 
-// File type descriptions (based on extension)
+// File type descriptions
 const char *get_file_description(const char *filename) {
     const char *ext = strrchr(filename, '.');
     if (ext == NULL) return "Unknown file type (no extension)";
@@ -53,15 +55,44 @@ const char *get_file_description(const char *filename) {
     return "Other file type – check manually";
 }
 
-// Function to check if a path is a directory
+// Check if a path is a directory
 int is_directory(const char *path) {
     struct stat statbuf;
     if (stat(path, &statbuf) != 0) return 0;
     return S_ISDIR(statbuf.st_mode);
 }
 
+// Fetch and print file content snippet (first 200 lines)
+void fetch_file_content(const char *path, FILE *report_fp) {
+    FILE *file = fopen(path, "r");
+    if (file == NULL) {
+        fprintf(report_fp, "Error: Could not open file %s for fetching (errno: %d)\n", path, errno);
+        return;
+    }
+    fprintf(report_fp, "Content Snippet (first 200 lines):\n");
+    char line[1024];
+    int line_count = 0;
+    while (fgets(line, sizeof(line), file) != NULL && line_count < 200) {
+        fprintf(report_fp, "%s", line);
+        line_count++;
+    }
+    if (line_count == 200) fprintf(report_fp, "[Truncated – full file larger than snippet]\n");
+    fclose(file);
+    fprintf(report_fp, "\n");
+}
+
+// Simple auto-edit: Generates a basic diff patch suggestion
+void auto_edit(const char *instruction, FILE *patch_fp) {
+    fprintf(patch_fp, "--- main.py (original)\n");
+    fprintf(patch_fp, "+++ main.py (edited)\n");
+    fprintf(patch_fp, "@@ -1,1 +1,1 @@\n");
+    fprintf(patch_fp, "-# Old code\n");
+    fprintf(patch_fp, "+# New code with try-except added for %s\n", instruction);
+    fprintf(patch_fp, "\nApply with: patch main.py < %s\n", PATCH_FILE);
+}
+
 // Recursive function to traverse and report on directories/files
-void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_biblical_focus) {
+void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_focus, int fetch_content) {
     DIR *dir;
     struct dirent *entry;
     char path[MAX_PATH];
@@ -93,64 +124,90 @@ void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_bibl
 
         if (is_directory(path)) {
             fprintf(report_fp, "Directory – Contains sub-files/folders for AI components.\n");
-            // Recurse
-            traverse_dir(path, report_fp, depth + 1, is_biblical_focus);
+            traverse_dir(path, report_fp, depth + 1, is_focus, fetch_content);
         } else {
             fprintf(report_fp, "%s\n", get_file_description(entry->d_name));
+            if (fetch_content) {
+                fetch_file_content(path, report_fp);
+            }
         }
     }
     closedir(dir);
 }
 
-int main() {
-    const char *root_dir = "/code";  // Your local code base root
+int main(int argc, char *argv[]) {
+    int fetch_content = 0;
+    int edit_mode = 0;
+    char *edit_instruction = NULL;
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--fetch") == 0) {
+            fetch_content = 1;
+            printf("Fetching content snippets enabled.\n");
+        } else if (strcmp(argv[i], "--edit") == 0 && i + 1 < argc) {
+            edit_mode = 1;
+            edit_instruction = argv[++i];
+            printf("Auto-edit mode enabled with instruction: %s\n", edit_instruction);
+        }
+    }
+
+    const char *root_dir = "/code";
     FILE *report_fp = fopen(REPORT_FILE, "w");
     if (report_fp == NULL) {
         printf("Error: Could not open report file %s (errno: %d)\n", REPORT_FILE, errno);
         return 1;
     }
 
-    fprintf(report_fp, "Code Base Report for Biblical Figure Knowledge AIs\n");
+    fprintf(report_fp, "Code Base Report for Biblical Figure Knowledge AIs + Supports\n");
     fprintf(report_fp, "Generated: %s\n", asctime(localtime(&(time_t){time(NULL)})));
     fprintf(report_fp, "Root: %s\n\n", root_dir);
 
-    // Traverse root, but focus on Biblical projects
-    DIR *root;
-    struct dirent *entry;
-    char path[MAX_PATH];
-
-    if (!(root = opendir(root_dir))) {
+    DIR *root = opendir(root_dir);
+    if (!root) {
         fprintf(report_fp, "Error: Could not open root %s (errno: %d)\n", root_dir, errno);
         fclose(report_fp);
         return 1;
     }
 
+    struct dirent *entry;
+    char path[MAX_PATH];
     while ((entry = readdir(root)) != NULL) {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
 
         snprintf(path, sizeof(path), "%s/%s", root_dir, entry->d_name);
 
         if (is_directory(path)) {
-            int is_biblical = 0;
-            for (int i = 0; biblical_projects[i] != NULL; i++) {
-                if (strcmp(entry->d_name, biblical_projects[i]) == 0) {
-                    is_biblical = 1;
+            int is_focus = 0;
+            for (int i = 0; focus_projects[i] != NULL; i++) {
+                if (strcmp(entry->d_name, focus_projects[i]) == 0) {
+                    is_focus = 1;
                     break;
                 }
             }
 
-            if (is_biblical) {
-                fprintf(report_fp, "Focused Biblical AI Project: %s\n", entry->d_name);
-                traverse_dir(path, report_fp, 1, 1);
+            if (is_focus) {
+                fprintf(report_fp, "Focused Project: %s\n", entry->d_name);
+                traverse_dir(path, report_fp, 1, is_focus, fetch_content);
                 fprintf(report_fp, "\n");
             } else {
-                fprintf(report_fp, "Non-Biblical Project: %s (skipping details, but exists)\n", entry->d_name);
+                fprintf(report_fp, "Other Project: %s (skipping details, but exists)\n", entry->d_name);
             }
         }
     }
 
     closedir(root);
     fclose(report_fp);
+
+    if (edit_mode && edit_instruction) {
+        FILE *patch_fp = fopen(PATCH_FILE, "w");
+        if (patch_fp == NULL) {
+            printf("Error: Could not open patch file %s (errno: %d)\n", PATCH_FILE, errno);
+        } else {
+            auto_edit(edit_instruction, patch_fp);
+            fclose(patch_fp);
+            printf("Basic patch suggestion generated in %s. Apply manually.\n", PATCH_FILE);
+        }
+    }
 
     printf("Report generated in %s. Open it to view details.\n", REPORT_FILE);
     return 0;
