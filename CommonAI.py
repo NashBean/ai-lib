@@ -15,18 +15,26 @@ import subprocess
 import sys
 import smtplib
 from email.mime.text import MIMEText
+# CommonAI.py - Shared library for TrinityAI projects
+# ... (keep your existing imports and functions; only replace/fix BDH section)
 
+import bdh  # Directly import the model file
+
+logger = logging.getLogger("ai_lib")
+
+
+# ... keep the rest of your file (version, logging, etc.) ...
 # Version
 MAJOR_VERSION = 0
 MINOR_VERSION = 3
-FIX_VERSION = 1
+FIX_VERSION = 4
 VERSION_STRING = f"v{MAJOR_VERSION}.{MINOR_VERSION}.{FIX_VERSION}"
 
-CONFIG_FILE = "config.json"
 DATA_DIR = "data"
-DATA_PATH = "data/data.json"
+CONFIG_FILE = "data/commonAI_config.json"
+DATA_PATH = "data/commonAI_data.json"
 
-logger = logging.getLogger("ai-lib")
+logger = logging.getLogger("ai_lib")
 
 # BDH Integration (Baby Dragon Hatchling for core learning/response)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'bdh')))
@@ -47,12 +55,45 @@ def load_bdh_model(data_file, param_size=10000000):  # Small for testing
         logger.error(f"BDH load error: {e}")
         return None
 
+# Load or train BDH on code data
+def load_bdh_model(data_file="input_code.txt", config=bdh.BDHConfig()):
+    try:
+        model = bdh.BDH(config).to("cpu")  # CPU for your setup
+        # Train (adapted from train.py logic)
+        # For simplicity, run a short train here; use full train.py for long sessions
+        with open(data_file, "r") as f:
+            data_text = f.read()
+        # Byte-level training loop (simplified; full in train.py)
+        data = torch.tensor(bytearray(data_text, "utf-8"), dtype=torch.long).to("cpu")
+        for _ in range(100):  # Short train; adjust
+            ix = torch.randint(0, len(data) - 512, (4,))
+            x = torch.stack([data[i:i+512] for i in ix])
+            y = torch.stack([data[i+1:i+513] for i in ix])
+            logits, loss = model(x, y)
+            loss.backward()
+            # Simple optimizer (full in train.py)
+        logger.info("BDH model loaded/trained on code.")
+        return model
+    except Exception as e:
+        logger.error(f"BDH load error: {e}")
+        return None
+
+# ... keep the rest of your file (version, logging, etc.) ...
+
+
 # Generate response using BDH
 def bdh_generate(model, prompt):
     if model is None:
         return "BDH not loaded."
     # Use BDH for "deep" response (adapt from BDH generation logic)
     return model.generate(prompt)  # Placeholder - customize from BDH code
+
+# Generate code/response using BDH
+def bdh_generate(model, prompt, max_tokens=100, temp=0.7):
+    if model is None:
+        return "BDH not loaded."
+    prompt_tensor = torch.tensor(bytearray(prompt, "utf-8"), dtype=torch.long).unsqueeze(0).to("cpu")
+    return bytes(model.generate(prompt_tensor, max_new_tokens=max_tokens, temperature=temp, top_k=40).squeeze().tolist()).decode(errors="backslashreplace")
 
 # Self-learn with BDH
 def bdh_self_learn(model, topic, research):
@@ -61,6 +102,41 @@ def bdh_self_learn(model, topic, research):
     # Update model with new data (Hebbian-style)
     model.update(research)  # Placeholder - adapt BDH's memory update
     return "Learned via BDH."
+
+# Self-learn with BDH on code topics (e.g., research Python funcs)
+def bdh_self_learn(model, topic):
+    if model is None:
+        return "BDH not loaded."
+    research = self_research(topic)  # Your existing function
+    # Append to data and retrain lightly
+    with open("input_code.txt", "a") as f:
+        f.write(research + "\n")
+    # Retrain short
+    load_bdh_model("input_code.txt")  # Reloads with new data
+    return "Learned code topic via BDH."
+
+# Load or train BDH on code data
+def load_bdh_model(data_file="input_code.txt", config=bdh.BDHConfig()):
+    try:
+        model = bdh.BDH(config).to("cpu")  # CPU for your setup
+        # Train (adapted from train.py logic)
+        # For simplicity, run a short train here; use full train.py for long sessions
+        with open(data_file, "r") as f:
+            data_text = f.read()
+        # Byte-level training loop (simplified; full in train.py)
+        data = torch.tensor(bytearray(data_text, "utf-8"), dtype=torch.long).to("cpu")
+        for _ in range(100):  # Short train; adjust
+            ix = torch.randint(0, len(data) - 512, (4,))
+            x = torch.stack([data[i:i+512] for i in ix])
+            y = torch.stack([data[i+1:i+513] for i in ix])
+            logits, loss = model(x, y)
+            loss.backward()
+            # Simple optimizer (full in train.py)
+        logger.info("BDH model loaded/trained on code.")
+        return model
+    except Exception as e:
+        logger.error(f"BDH load error: {e}")
+        return None
 
 
 # Version helper
@@ -217,7 +293,6 @@ def send_alert(config, message):
         logger.error(f"Alert failed: {e}")
 
 # Data utils
-
 def load_data(filename):
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -254,3 +329,9 @@ def get_culture(ai_data, query):
 def speak(text):
     clean = text.replace('\n', ' ').replace('"', '\\"').replace("'", "\\'")
     os.system(f'espeak "{clean}" 2>/dev/null &')
+
+    # CommonAI.py - minimal stub for now
+
+def bdh_generate(model, prompt, max_tokens=300, temp=0.8):
+    """Placeholder - will connect to real BDH later"""
+    return "# Generated by BDH (stub)\n" + prompt.upper()  # dummy output
