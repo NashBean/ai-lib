@@ -6,16 +6,19 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
-// v0.1.0
+// v0.2.0
 // Max path length (standard for most systems)
 #define MAX_PATH 4096
 // Report file name
 #define REPORT_FILE "code_base_report.txt"
-// Biblical AI projects to focus on (add more if needed)
-const char *biblical_projects[] = {
+// Focused projects (Biblical AIs + utils like ai_lib/TrinityAI/BDH – add more as needed)
+const char *focus_projects[] = {
     "AbrahamAI",
     "MosesAI",
     "JesusAI",
+    "ai_lib",
+    "TrinityAI",
+    "BDH",
     NULL  // End marker
 };
 
@@ -46,7 +49,7 @@ int is_directory(const char *path) {
 }
 
 // Recursive function to traverse and report on directories/files
-void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_biblical_focus) {
+void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_focus) {
     DIR *dir;
     struct dirent *entry;
     char path[MAX_PATH];
@@ -79,7 +82,7 @@ void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_bibl
         if (is_directory(path)) {
             fprintf(report_fp, "Directory – Contains sub-files/folders for AI components.\n");
             // Recurse
-            traverse_dir(path, report_fp, depth + 1, is_biblical_focus);
+            traverse_dir(path, report_fp, depth + 1, is_focus);
         } else {
             fprintf(report_fp, "%s\n", get_file_description(entry->d_name));
         }
@@ -95,11 +98,11 @@ int main() {
         return 1;
     }
 
-    fprintf(report_fp, "Code Base Report for Biblical Figure Knowledge AIs\n");
+    fprintf(report_fp, "Code Base Report for Biblical Figure Knowledge AIs + Utils\n");
     fprintf(report_fp, "Generated: %s\n", asctime(localtime(&(time_t){time(NULL)})));
     fprintf(report_fp, "Root: %s\n\n", root_dir);
 
-    // Traverse root, but focus on Biblical projects
+    // Traverse root, focus on specified projects
     DIR *root;
     struct dirent *entry;
     char path[MAX_PATH];
@@ -116,20 +119,20 @@ int main() {
         snprintf(path, sizeof(path), "%s/%s", root_dir, entry->d_name);
 
         if (is_directory(path)) {
-            int is_biblical = 0;
-            for (int i = 0; biblical_projects[i] != NULL; i++) {
-                if (strcmp(entry->d_name, biblical_projects[i]) == 0) {
-                    is_biblical = 1;
+            int is_focus = 0;
+            for (int i = 0; focus_projects[i] != NULL; i++) {
+                if (strcmp(entry->d_name, focus_projects[i]) == 0) {
+                    is_focus = 1;
                     break;
                 }
             }
 
-            if (is_biblical) {
-                fprintf(report_fp, "Focused Biblical AI Project: %s\n", entry->d_name);
+            if (is_focus) {
+                fprintf(report_fp, "Focused Project: %s\n", entry->d_name);
                 traverse_dir(path, report_fp, 1, 1);
                 fprintf(report_fp, "\n");
             } else {
-                fprintf(report_fp, "Non-Biblical Project: %s (skipping details, but exists)\n", entry->d_name);
+                fprintf(report_fp, "Other Project: %s (skipping details, but exists)\n", entry->d_name);
             }
         }
     }
