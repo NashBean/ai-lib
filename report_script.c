@@ -6,12 +6,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
-// v0.3.0
-// Max path length (standard for most systems)
+// v0.4.0
+// Max path length
 #define MAX_PATH 4096
 // Report file name
-#define REPORT_FILE "code_base_report.txt"
-// Focused projects (Biblical AIs + supports – add more when you get on computer)
+#define REPORT_FILE "code_base_report_v3.txt"
+// Focused projects
 const char *focus_projects[] = {
     "AbrahamAI",
     "MosesAI",
@@ -19,11 +19,11 @@ const char *focus_projects[] = {
     "ai_lib",
     "TrinityAI",
     "BDH",
-    "iBS_LIB",  // For iBeanSoftware ties
-    NULL  // End marker
+    "iBS_LIB",
+    NULL
 };
 
-// File type descriptions (based on extension)
+// File type descriptions
 const char *get_file_description(const char *filename) {
     const char *ext = strrchr(filename, '.');
     if (ext == NULL) return "Unknown file type (no extension)";
@@ -49,8 +49,27 @@ int is_directory(const char *path) {
     return S_ISDIR(statbuf.st_mode);
 }
 
+// Function to fetch and print file content snippet (first 200 lines)
+void fetch_file_content(const char *path, FILE *report_fp) {
+    FILE *file = fopen(path, "r");
+    if (file == NULL) {
+        fprintf(report_fp, "Error: Could not open file %s for fetching (errno: %d)\n", path, errno);
+        return;
+    }
+    fprintf(report_fp, "Content Snippet (first 200 lines):\n");
+    char line[1024];
+    int line_count = 0;
+    while (fgets(line, sizeof(line), file) != NULL && line_count < 200) {
+        fprintf(report_fp, "%s", line);
+        line_count++;
+    }
+    if (line_count == 200) fprintf(report_fp, "[Truncated – full file larger than snippet]\n");
+    fclose(file);
+    fprintf(report_fp, "\n");
+}
+
 // Recursive function to traverse and report on directories/files
-void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_focus) {
+void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_focus, int fetch_content) {
     DIR *dir;
     struct dirent *entry;
     char path[MAX_PATH];
@@ -83,15 +102,24 @@ void traverse_dir(const char *base_path, FILE *report_fp, int depth, int is_focu
         if (is_directory(path)) {
             fprintf(report_fp, "Directory – Contains sub-files/folders for AI components.\n");
             // Recurse
-            traverse_dir(path, report_fp, depth + 1, is_focus);
+            traverse_dir(path, report_fp, depth + 1, is_focus, fetch_content);
         } else {
             fprintf(report_fp, "%s\n", get_file_description(entry->d_name));
+            if (fetch_content) {
+                fetch_file_content(path, report_fp);
+            }
         }
     }
     closedir(dir);
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    int fetch_content = 0;
+    if (argc > 1 && strcmp(argv[1], "--fetch") == 0) {
+        fetch_content = 1;
+        printf("Fetching content snippets enabled.\n");
+    }
+
     const char *root_dir = "/code";  // Your local code base root
     FILE *report_fp = fopen(REPORT_FILE, "w");
     if (report_fp == NULL) {
@@ -130,7 +158,7 @@ int main() {
 
             if (is_focus) {
                 fprintf(report_fp, "Focused Project: %s\n", entry->d_name);
-                traverse_dir(path, report_fp, 1, 1);
+                traverse_dir(path, report_fp, 1, is_focus, fetch_content);
                 fprintf(report_fp, "\n");
             } else {
                 fprintf(report_fp, "Other Project: %s (skipping details, but exists)\n", entry->d_name);
