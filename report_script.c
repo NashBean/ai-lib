@@ -6,12 +6,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
-// v0.2.0
+// v0.3.0
 // Max path length (standard for most systems)
 #define MAX_PATH 4096
 // Report file name
 #define REPORT_FILE "code_base_report.txt"
-// Focused projects (Biblical AIs + utils like ai_lib/TrinityAI/BDH – add more as needed)
+// Focused projects (Biblical AIs + supports – add more when you get on computer)
 const char *focus_projects[] = {
     "AbrahamAI",
     "MosesAI",
@@ -19,6 +19,7 @@ const char *focus_projects[] = {
     "ai_lib",
     "TrinityAI",
     "BDH",
+    "iBS_LIB",  // For iBeanSoftware ties
     NULL  // End marker
 };
 
@@ -98,7 +99,7 @@ int main() {
         return 1;
     }
 
-    fprintf(report_fp, "Code Base Report for Biblical Figure Knowledge AIs + Utils\n");
+    fprintf(report_fp, "Code Base Report for Biblical Figure Knowledge AIs + Supports\n");
     fprintf(report_fp, "Generated: %s\n", asctime(localtime(&(time_t){time(NULL)})));
     fprintf(report_fp, "Root: %s\n\n", root_dir);
 
